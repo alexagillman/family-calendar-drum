@@ -2,17 +2,19 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar as CalendarIcon, Plus, CaretLeft, CaretRight } from '@phosphor-icons/react';
+import { Calendar as CalendarIcon, Plus, CaretLeft, CaretRight, X } from '@phosphor-icons/react';
 import { format, getCalendarDays, isToday, addMonths } from '@/lib/date-utils';
 import { useEvents } from '@/hooks/use-calendar';
 import { EventDialog } from './EventDialog';
 import { cn } from '@/lib/utils';
+import type { Event } from '@/lib/data';
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
 
   const { data: events = [] } = useEvents();
@@ -27,6 +29,14 @@ export function Calendar() {
 
   const handleDateClick = (date: Date) => {
     setSelectedDate(date);
+    setSelectedEvent(null);
+    setIsEventDialogOpen(true);
+  };
+
+  const handleEventClick = (event: Event, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedEvent(event);
+    setSelectedDate(null);
     setIsEventDialogOpen(true);
   };
 
@@ -40,6 +50,7 @@ export function Calendar() {
 
   const handleAddEvent = () => {
     setSelectedDate(new Date());
+    setSelectedEvent(null);
     setIsEventDialogOpen(true);
   };
 
@@ -106,7 +117,8 @@ export function Calendar() {
                     <Badge
                       key={event._id}
                       variant="secondary"
-                      className="text-xs block truncate"
+                      className="text-xs block truncate cursor-pointer hover:bg-secondary/80 transition-colors"
+                      onClick={(e) => handleEventClick(event, e)}
                     >
                       {event.title}
                     </Badge>
@@ -127,6 +139,7 @@ export function Calendar() {
         open={isEventDialogOpen}
         onOpenChange={setIsEventDialogOpen}
         selectedDate={selectedDate}
+        event={selectedEvent || undefined}
       />
     </div>
   );
